@@ -1,4 +1,4 @@
-service: notes-app-ext-notes-api
+service: bobletv2-images-api
 
 plugins:
   - serverless-bundle
