@@ -13,7 +13,7 @@ provider:
   name: aws
   runtime: nodejs10.x
   stage: dev
-  region: us-east-1
+  region: ${file(../../serverless.common.yml):region}
   tracing:
     apiGateway: true
     lambda: true
@@ -23,6 +23,7 @@ provider:
   environment:
     stage: ${self:custom.stage}
     resourcesStage: ${self:custom.resourcesStage}
+    TABLE_NAME: bobletv2
 
   iamRoleStatements:
     - ${file(../../serverless.common.yml):lambdaPolicyXRay}
@@ -38,11 +39,10 @@ provider:
       # Restrict our IAM role permissions to
       # the specific table for the stage
       Resource:
-        - 'Fn::ImportValue': ${self:custom.resourcesStage}-ExtNotesTableArn
+        - 'Fn::ImportValue': ${self:custom.resourcesStage}-${self:custom.app-name}-StorageTableArn
 
 functions:
-  # Defines an HTTP API endpoint that calls the main function in create.js
-  # - path: url path is /notes
+  # Defines an HTTP API endpoint that calls the main function in create.
   # - method: POST request
   # - cors: enabled CORS (Cross-Origin Resource Sharing) for browser cross
   #     domain api call
@@ -51,55 +51,40 @@ functions:
     handler: create.main
     events:
       - http:
-          path: notes
+          path: uploads
           method: post
           cors: true
           authorizer: aws_iam
 
   get:
     # Defines an HTTP API endpoint that calls the main function in get.js
-    # - path: url path is /notes/{id}
     # - method: GET request
     handler: get.main
     events:
       - http:
-          path: notes/{id}
+          path: uploads/{id}
           method: get
           cors: true
           authorizer: aws_iam
 
   list:
     # Defines an HTTP API endpoint that calls the main function in list.js
-    # - path: url path is /notes
     # - method: GET request
     handler: list.main
     events:
       - http:
-          path: notes
+          path: uploads
           method: get
-          cors: true
-          authorizer: aws_iam
-
-  update:
-    # Defines an HTTP API endpoint that calls the main function in update.js
-    # - path: url path is /notes/{id}
-    # - method: PUT request
-    handler: update.main
-    events:
-      - http:
-          path: notes/{id}
-          method: put
           cors: true
           authorizer: aws_iam
 
   delete:
     # Defines an HTTP API endpoint that calls the main function in delete.js
-    # - path: url path is /notes/{id}
     # - method: DELETE request
     handler: delete.main
     events:
       - http:
-          path: notes/{id}
+          path: uploads/{id}
           method: delete
           cors: true
           authorizer: aws_iam
@@ -115,13 +100,13 @@ resources:
         Value:
           Ref: ApiGatewayRestApi
         Export:
-          Name: ${self:custom.stage}-ExtApiGatewayRestApiId
-    
+          Name: ${self:custom.stage}-${self:custom.app-name}-ApiGatewayRestApiId
+
       ApiGatewayRestApiRootResourceId:
         Value:
            Fn::GetAtt:
             - ApiGatewayRestApi
-            - RootResourceId 
+            - RootResourceId
         Export:
-          Name: ${self:custom.stage}-ExtApiGatewayRestApiRootResourceId
+          Name: ${self:custom.stage}-${self:custom.app-name}-ApiGatewayRestApiRootResourceId
 
