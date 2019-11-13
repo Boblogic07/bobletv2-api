@@ -11,15 +11,16 @@ export async function main(event, context) {
     Item: {
       userId: event.requestContext.identity.cognitoIdentityId,
       uploadId: uuid.v1(),
-      comment: data.comment,
+      comment: data.comment || null,
       image: data.image,
       createdAt: Date.now()
     }
   };
+  console.log(params);
   try {
     await dynamoDbLib.call("put", params);
     return success(params.Item);
   } catch (e) {
-    return failure({ status: false});
+    return failure({ status: false, e: e});
   }
 }
